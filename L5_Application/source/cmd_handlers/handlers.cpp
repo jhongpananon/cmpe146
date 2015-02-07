@@ -227,12 +227,10 @@ CMD_HANDLER_FUNC(logHandler)
         logger_log_raw(cmdParams());
     }
     else if ( (enablePrintf = cmdParams.beginsWith("enable ")) || cmdParams.beginsWith("disable ")) {
-        // command is: 'enableprint info/warning/error'
-
-        cmdParams.eraseFirstWords(1);
-        logger_msg_t type = cmdParams.beginsWithIgnoreCase("warn")  ? log_warn  :
-                            cmdParams.beginsWithIgnoreCase("error") ? log_error :
-                            cmdParams.beginsWithIgnoreCase("info")  ? log_info  : log_debug;
+        // command is: 'enable print info/warning/error'
+        logger_msg_t type = cmdParams.containsIgnoreCase("warn")  ? log_warn  :
+                            cmdParams.containsIgnoreCase("error") ? log_error :
+                            cmdParams.containsIgnoreCase("info")  ? log_info  : log_debug;
 
         logger_set_printf(type, enablePrintf);
         output.printf("%s logger printf for %s\n",
