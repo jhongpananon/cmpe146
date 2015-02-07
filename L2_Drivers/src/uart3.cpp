@@ -32,6 +32,10 @@ extern "C"
 {
     void UART3_IRQHandler()
     {
+        //default uart3_irqhandler
+        Uart3::getInstance().handleInterrupt();
+
+        //by Jon Feb 7, 2015
         Uart3::getInstance().handleInterrupt();
     }
 }

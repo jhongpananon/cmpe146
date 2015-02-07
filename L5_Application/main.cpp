@@ -25,8 +25,12 @@
  */
 #include "tasks.hpp"
 #include "examples/examples.hpp"
+#include "utilities.h"
+#include <stdio.h>
+#include "uart_dev.hpp"
 
-
+char uart3_putchar(char out);
+void uart3_getchar(char c);
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -42,8 +46,54 @@
  *        In either case, you should avoid using this bus or interfacing to external components because
  *        there is no semaphore configured for this bus and it should be used exclusively by nordic wireless.
  */
+char uart3_putchar(char out) {
+    while (! (LPC_UART3->LSR & (1 << 5))); //hold while not empty
+    LPC_UART3->THR = out;
+    return 1;
+}
+
+void uart3_getchar(char c) {
+    while (! (LPC_UART3->LSR & (1 << 0))); //hold while FIFO is not empty
+    LPC_UART3->RBR = c;
+}
+
+extern "C" {
+    void UART3_IRQHandler() {
+
+    }
+}
+
 int main(void)
 {
+    // UART INIT
+    BIT(LPC_SC->PCONP).b25 = 1;    // enable UART3
+    BIT(LPC_SC->PCLKSEL1).b17_16 = 1; //uart clock = CPU / 1
+    LPC_PINCON->PINSEL0 &= ~(0xF << 16); //clear values in register
+    LPC_PINCON->PINSEL0 |= (0xA << 16);  //set values for UART3
+
+    LPC_UART3->LCR = (1 << 7);  // enable DLAB
+    LPC_UART3->DLM = 0;
+    LPC_UART3->DLL = sys_get_cpu_clock() / (16 * 9600) + 0.5;
+    LPC_UART3->LCR = 3; // 8-bit word length
+    LPC_UART3->FCR |= (1 << 0); // enable UART FIFO
+    LPC_UART3->LCR &= ~(1 << 7); //disable DLAB
+
+    char c = 'A';
+
+    //polling uart
+//    while(1) {
+//        uart3_getchar(c);
+//        c++;
+//        uart3_putchar(c);
+//    }
+
+    //interrupt uart
+    Uart3 uart;
+    uart.init(9600);
+    LPC_PINCON->PINSEL0 &= ~(0xF << 16); //clear values in register
+    LPC_PINCON->PINSEL0 |= (0xA << 16);  //set values for UART3
+
+
     /**
      * A few basic tasks for this bare-bone system :
      *      1.  Terminal task provides gateway to interact with the board through UART terminal.
