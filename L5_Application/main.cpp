@@ -57,12 +57,6 @@ void uart3_getchar(char c) {
     LPC_UART3->RBR = c;
 }
 
-extern "C" {
-    void UART3_IRQHandler() {
-
-    }
-}
-
 int main(void)
 {
     // UART INIT
@@ -81,17 +75,11 @@ int main(void)
     char c = 'A';
 
     //polling uart
-//    while(1) {
-//        uart3_getchar(c);
-//        c++;
-//        uart3_putchar(c);
-//    }
-
-    //interrupt uart
-    Uart3 uart;
-    uart.init(9600);
-    LPC_PINCON->PINSEL0 &= ~(0xF << 16); //clear values in register
-    LPC_PINCON->PINSEL0 |= (0xA << 16);  //set values for UART3
+    while(1) {
+        uart3_getchar(c);
+        c++;
+        uart3_putchar(c);
+    }
 
 
     /**
